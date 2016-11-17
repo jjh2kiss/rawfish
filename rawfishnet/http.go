@@ -53,12 +53,16 @@ func NewRawfishHandler(config *config.Config, prefix string) *RawfishHandler {
 }
 
 func (self *RawfishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf(r.URL.Path)
-	self.serveFile(w, r, true)
+	log.Printf("REQ %s %s", r.Method, r.URL.Path)
+	self.serve(w, r, true)
 }
 
 func (self *RawfishHandler) GetLocalFilename(name string) string {
 	return strings.TrimPrefix(name, self.prefix)
+}
+
+func (self *RawfishHandler) GetCleanLocalFilename(name string) string {
+	return path.Clean(self.GetLocalFilename(name))
 }
 
 // localRedirect gives a Moved Permanently resoponse
@@ -70,6 +74,12 @@ func localRedirect(w http.ResponseWriter, r *http.Request, newPath string) {
 
 	w.Header().Set("Location", newPath)
 	w.WriteHeader(http.StatusMovedPermanently)
+
+	log.Printf("RES %d REDIRECT(%s->%s)",
+		http.StatusMovedPermanently,
+		r.URL.Path,
+		newPath,
+	)
 }
 
 func toHTTPError(err error) (msg string, httpStatus int) {
@@ -108,7 +118,26 @@ func dirList(w http.ResponseWriter, f http.File, base string) {
 	fmt.Fprintf(w, "</pre>\n")
 }
 
-func (self *RawfishHandler) serveContent(w http.ResponseWriter, r *http.Request, name string, size int64, content io.ReadSeeker) {
+func force200Ok(w http.ResponseWriter, size int) {
+	reader := bufio.NewReader(limitless.NewLimitlessReader(""))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	io.CopyN(w, reader, int64(size))
+}
+
+func (self *RawfishHandler) Error(w http.ResponseWriter, err error) {
+	if self.config.Force200Ok {
+		log.Printf("RES 200 FORCE(len=%d)", self.config.Force200OkSize)
+		reader := bufio.NewReader(limitless.NewLimitlessReader(""))
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.CopyN(w, reader, int64(self.config.Force200OkSize))
+	} else {
+		msg, code := toHTTPError(err)
+		http.Error(w, msg, code)
+		log.Printf("RES %s", msg)
+	}
+}
+
+func (self *RawfishHandler) serveContent(w http.ResponseWriter, r *http.Request, size int64, content io.ReadSeeker) {
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		http.Error(w, "webserver doesn't support hijacking", http.StatusInternalServerError)
@@ -131,33 +160,49 @@ func (self *RawfishHandler) serveContent(w http.ResponseWriter, r *http.Request,
 	}
 }
 
-func (self *RawfishHandler) serveFile(w http.ResponseWriter, r *http.Request, redirect bool) {
-	name := r.URL.Path
-	local_filename := self.GetLocalFilename(name)
-	local_filename = path.Clean(local_filename)
+func (self *RawfishHandler) serveFile(w http.ResponseWriter, r *http.Request, f http.File, stat os.FileInfo) {
+	filepath := self.GetCleanLocalFilename(r.URL.Path)
+	t := self.service_type_checker.Get(path.Dir(filepath))
 
-	f, err := self.filesystem.Open(local_filename)
+	if t.IsRawType() {
+		//use original http.ResponseWriter
+		log.Printf("RES 200 RAW %s", filepath)
+		self.serveContent(w, r, stat.Size(), f)
+	} else if t.IsNormalType() {
+		//call golang/net/http/fs.go/ServeContent
+		log.Printf("RES 200 NORMAL %s", filepath)
+		http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
+	} else {
+		self.Error(w, nil)
+	}
+}
+
+func (self *RawfishHandler) serveDir(w http.ResponseWriter, r *http.Request, f http.File) {
+	base := r.URL.Path
+	if base[len(base)-1] != '/' {
+		base = base + "/"
+	}
+	log.Printf("RES 200 DIR Listing %s", base)
+	dirList(w, f, base)
+}
+
+func (self *RawfishHandler) serve(w http.ResponseWriter, r *http.Request, redirect bool) {
+	if self.config.Rate > 0 {
+		w = NewShapeIOResponseWriter(w, self.config.Rate)
+	}
+
+	filepath := self.GetCleanLocalFilename(r.URL.Path)
+	f, err := self.filesystem.Open(filepath)
 	if err != nil {
-		if self.config.Force200Ok {
-			if self.config.Rate > 0 {
-				w = NewShapeIOResponseWriter(w, self.config.Rate)
-			}
-
-			reader := bufio.NewReader(limitless.NewLimitlessReader(""))
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			io.CopyN(w, reader, int64(self.config.Force200OkSize))
-		} else {
-			msg, code := toHTTPError(err)
-			http.Error(w, msg, code)
-		}
+		self.Error(w, err)
 		return
 	}
+
 	defer f.Close()
 
 	stat, err := f.Stat()
 	if err != nil {
-		msg, code := toHTTPError(err)
-		http.Error(w, msg, code)
+		self.Error(w, err)
 		return
 	}
 
@@ -177,27 +222,8 @@ func (self *RawfishHandler) serveFile(w http.ResponseWriter, r *http.Request, re
 	}
 
 	if stat.IsDir() {
-		base := r.URL.Path
-		if base[len(base)-1] != '/' {
-			base = base + "/"
-		}
-
-		dirList(w, f, base)
-		return
-	}
-
-	t := self.service_type_checker.Get(path.Dir(local_filename))
-
-	if t.IsRawType() {
-		self.serveContent(w, r, stat.Name(), stat.Size(), f)
-	} else if t.IsNormalType() {
-		//call golang/net/http/fs.go/ServeContent
-		if self.config.Rate > 0 {
-			w = NewShapeIOResponseWriter(w, self.config.Rate)
-		}
-		http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
+		self.serveDir(w, r, f)
 	} else {
-		msg, code := toHTTPError(nil)
-		http.Error(w, msg, code)
+		self.serveFile(w, r, f, stat)
 	}
 }

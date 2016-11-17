@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -44,11 +45,7 @@ func main() {
 			Usage: "timeout for write",
 		},
 		cli.BoolFlag{
-			Name:  "daemon, d",
-			Usage: "enable daemonize",
-		},
-		cli.BoolFlag{
-			Name:  "enable-force-200-ok, f",
+			Name:  "force-200-ok, f",
 			Usage: "reply 200 OK when does not have page",
 		},
 		cli.IntFlag{
@@ -87,7 +84,7 @@ func main() {
 		config.ReadTimeout = c.Int("read-timeout")
 		config.WriteTimeout = c.Int("write-timeout")
 		config.Https = c.Bool("https")
-		config.Force200Ok = c.Bool("enable-force-200-ok")
+		config.Force200Ok = c.Bool("force-200-ok")
 		config.Force200OkSize = c.Int("force-200-ok-content-size")
 		config.Pemfile = c.String("pemfile")
 		config.Rate = c.Int("rate")
@@ -102,6 +99,10 @@ func main() {
 		process := c.Int("process")
 		config.Process = math.IntMin(process, runtime.NumCPU())
 		runtime.GOMAXPROCS(process)
+
+		if c.Bool("verbose") == false {
+			log.SetOutput(ioutil.Discard)
+		}
 
 		mux := http.NewServeMux()
 		server := &http.Server{
