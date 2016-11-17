@@ -71,41 +71,78 @@ func TestInternalGet(t *testing.T) {
 		expected     Type
 	}{
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_NORMAL),
-			path:         "normal",
+			path:         "implicit/normal",
 			expected:     Type(SERVICETYPE_NORMAL),
 		},
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_NORMAL),
-			path:         "raw",
+			path:         "implicit/raw",
 			expected:     Type(SERVICETYPE_RAW),
 		},
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_RAW),
-			path:         "normal",
+			path:         "implicit/normal",
 			expected:     Type(SERVICETYPE_RAW),
 		},
-		//test/raw/.raw의 영향으로 raw 타입
+		//testdata/raw/.raw의 영향으로 raw 타입
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_NORMAL),
-			path:         "raw/sub1/sub2",
+			path:         "implicit/raw/sub1/sub2",
 			expected:     Type(SERVICETYPE_RAW),
 		},
-		//test/raw/.raw의 영향으로 raw 타입
+		//testdata/raw/.raw의 영향으로 raw 타입
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_RAW),
-			path:         "raw/sub1/sub2",
+			path:         "implicit/raw/sub1/sub2",
 			expected:     Type(SERVICETYPE_RAW),
 		},
 		{
-			root:         filepath.Join(cwd, "test"),
+			root:         filepath.Join(cwd, "testdata"),
 			default_type: Type(SERVICETYPE_NORMAL),
-			path:         "raw/sub1/sub2/a.txt",
+			path:         "implicit/raw/sub1/sub2/a.txt",
+			expected:     Type(SERVICETYPE_RAW),
+		},
+		{
+			root:         filepath.Join(cwd, "testdata/implicit"),
+			default_type: Type(SERVICETYPE_NORMAL),
+			path:         "/",
+			expected:     Type(SERVICETYPE_NORMAL),
+		},
+		{
+			root:         filepath.Join(cwd, "testdata/implicit"),
+			default_type: Type(SERVICETYPE_RAW),
+			path:         "/",
+			expected:     Type(SERVICETYPE_RAW),
+		},
+
+		{
+			root:         filepath.Join(cwd, "testdata"),
+			default_type: Type(SERVICETYPE_NORMAL),
+			path:         "explicit/normal",
+			expected:     Type(SERVICETYPE_NORMAL),
+		},
+		{
+			root:         filepath.Join(cwd, "testdata"),
+			default_type: Type(SERVICETYPE_RAW),
+			path:         "explicit/normal",
+			expected:     Type(SERVICETYPE_NORMAL),
+		},
+		{
+			root:         filepath.Join(cwd, "testdata"),
+			default_type: Type(SERVICETYPE_NORMAL),
+			path:         "explicit/raw",
+			expected:     Type(SERVICETYPE_RAW),
+		},
+		{
+			root:         filepath.Join(cwd, "testdata"),
+			default_type: Type(SERVICETYPE_RAW),
+			path:         "explicit/raw",
 			expected:     Type(SERVICETYPE_RAW),
 		},
 	}
