@@ -21,10 +21,10 @@ Golang의 설치를 아래 주소를 참조하세요.
 https://golang.org/doc/install#install
 
 golang가 설치되어 있다면 아래 명령을 실행하여 rawfish를 빌드할 수 있습니다.
-> cd [RAWFISHDIR]
-> go get
-> go build
-> go install
+> cd [RAWFISHDIR]  
+> go get  
+> go build  
+> go install  
 
 ### 서버 구동
 Rawfish는 http, https를 모두 서비스합니다.
@@ -60,12 +60,12 @@ Mode 판정은 아래 규직을 따릅니다.
 
 rawfish는 아래와 같은 모드 예제를 포함하고 있습니다. 사용에 참고하세요
 [RAWFISHDIR]/samples
-> .
-> ./normal
-> ./normal/www.youtube.com
-> ./raw
-> ./raw/www.youtube.com
-> ./raw/.raw
+> .  
+> ./normal  
+> ./normal/www.youtube.com  
+> ./raw  
+> ./raw/www.youtube.com  
+> ./raw/.raw  
 
 1. http://127.0.0.1 -> Directory Listing
 2. http://127.0.0.1/normal/www.youtube.com -> Normal 모드, www.youtube.com 파일 다운로드
