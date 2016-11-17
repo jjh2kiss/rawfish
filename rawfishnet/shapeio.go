@@ -40,45 +40,6 @@ func (self *ShapeIOResponseWriter) Write(b []byte) (written int, err error) {
 	return CopyWithShapeIO(dst, src, len(b), self.rate)
 }
 
-func (self *ShapeIOResponseWriter) _Write(b []byte) (written int, err error) {
-	buf_size := math.IntMin(len(b), self.rate)
-	buf := make([]byte, buf_size)
-
-	src := bytes.NewReader(b)
-	dst := self.writer
-
-	for {
-		nr, er := src.Read(buf)
-		if nr > 0 {
-			nw, ew := dst.Write(buf[0:nr])
-			if self.flusher != nil {
-				self.flusher.Flush()
-			}
-
-			if nw > 0 {
-				written += nw
-			}
-			if ew != nil {
-				err = ew
-				break
-			}
-			if nr != nw {
-				err = io.ErrShortWrite
-				break
-			}
-		}
-		if er == io.EOF {
-			break
-		}
-		if er != nil {
-			err = er
-			break
-		}
-	}
-	return written, err
-
-}
-
 func (self *ShapeIOResponseWriter) Header() http.Header {
 	return self.base.Header()
 }
