@@ -5,17 +5,17 @@ HTTP Server for RAW HTTP Message
 
 RAWFISH는 HTTP Message 자체를 서비스하는 경량 웹 서버 입니다.
 
-## 주요 기능
+### 주요 기능
 * BandWidth 조절
 * Read/Write Timtout 설정
 * HTTP/HTTPS 지원 
 * 강제 200 OK 지정(요청한 주소가 존재하지 않을 경우 200 OK 전송)
 * RAW/NORMAL 의 선택적 적용 및 상속 
 
-## Download
+### Download
 > git clone https://github.com/jjh2kiss/rawfish.git
 
-## Build & Install
+### Build & Install
 rawfish를 Golang를 이용해 개발되었습니다. 소스를 이용해 빌드하려면 Golang(>=1.7.0)가 설치되어 있어햐 합니다.
 Golang의 설치를 아래 주소를 참조하세요.
 https://golang.org/doc/install#install
@@ -35,9 +35,9 @@ wget를 이용해 rawfish서버가 정상적으로 구동되었는지 확인할 
 > wget http://localhost
 
 ### RAW 모드와 Normal 모드
-rawfish는 normal, raw 두가지 모드를 지원합니다.
-normal은 apache, nginx의 Static File 서비스와 동일합니다. 사용자가 요청한 파일이 존재할 경우 HTTP 프로토코을 이용해 파일을 전송합니다.
-raw 모드의 경우 HTTP Message 서비스합니다. HTTP Message는 보통 아래와 같이 구성됩니다.
+rawfish는 normal, raw 두가지 모드를 지원합니다.  
+normal은 apache, nginx의 Static File 서비스와 동일합니다. 사용자가 요청한 파일이 존재할 경우 HTTP 프로토코을 이용해 파일을 전송합니다.  
+raw 모드의 경우 HTTP Message 서비스합니다. HTTP Message는 보통 아래와 같이 구성됩니다.  
 
 HTTP Message | Example
 ------------ | ------
@@ -45,27 +45,29 @@ STATUS LINE  | HTTP/1.1 200 OK
 HEADERS(General, Reponse, Entity) | Connection: Close
 Message Body | <HTML>...<HTML>
 
-RESTFul API, Header 값에 따른  클라이언트 동작 테스트 등에 유용하게 사용하 수 있습니다.
+RESTFul API, Header 값에 따른  클라이언트 동작 테스트 등에 유용하게 사용하 수 있습니다.  
 
-Mode 판정은 아래 규직을 따릅니다.
-1. 요청한 파일의 디렉토리에 ".raw"파일이 존재하는지 검사한다.
-2. ".raw"파일이 존재할 경우 RAWMODE로 서비스한다.
-3. ".raw"파일이 존재하지 않을 경우 ".normal"파일을 검사한다.
-4. ".normal"파일이 존재할 경우 NORMAL MODE로 서비스한다.
-5. ".raw", ".normal"파일이 모두 존재하지 않을 경우 상위 디렉토리 이동후 1번 과정을 수행한다.
-6. 최상위 디렉토리에 ".raw", ".normal"모두 없을 경우 NORMAL 모드로 서비스한다.
+Mode 판정은 아래 규직을 따릅니다.  
 
-모드는 상속 가능한 속성입니다.
-최상위 디렉토리에 ".raw"를 생성해 놓을 경우, 하위디렉토는 자신의 모드를 지정하지 않는이상 RAWMODE를 사용하게 됩니다.
+1. 요청한 파일의 디렉토리에 ".raw"파일이 존재하는지 검사한다.  
+2. ".raw"파일이 존재할 경우 RAWMODE로 서비스한다.  
+3. ".raw"파일이 존재하지 않을 경우 ".normal"파일을 검사한다.  
+4. ".normal"파일이 존재할 경우 NORMAL MODE로 서비스한다.  
+5. ".raw", ".normal"파일이 모두 존재하지 않을 경우 상위 디렉토리 이동후 1번 과정을 수행한다.  
+6. 최상위 디렉토리에 ".raw", ".normal"모두 없을 경우 NORMAL 모드로 서비스한다.  
 
-rawfish는 아래와 같은 모드 예제를 포함하고 있습니다. 사용에 참고하세요
-[RAWFISHDIR]/samples
+모드는 상속 가능한 속성입니다.  
+최상위 디렉토리에 ".raw"를 생성해 놓을 경우, 하위디렉토는 자신의 모드를 지정하지 않는이상 RAWMODE를 사용하게 됩니다.  
+
+rawfish는 아래와 같은 모드 예제를 포함하고 있습니다. 사용에 참고하세요  
+[RAWFISHDIR]/samples  
 > .  
 > ./normal  
 > ./normal/www.youtube.com  
 > ./raw  
 > ./raw/www.youtube.com  
 > ./raw/.raw  
+
 
 1. http://127.0.0.1 -> Directory Listing
 2. http://127.0.0.1/normal/www.youtube.com -> Normal 모드, www.youtube.com 파일 다운로드
