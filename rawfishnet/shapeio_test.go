@@ -78,7 +78,7 @@ func TestCopyWithShapeIO(t *testing.T) {
 			return
 		}
 		if written != len(testcase.input) {
-			t.Errorf("Testcase.%d : expected written lenght is %d, but %d", index, testcase.expected, written)
+			t.Errorf("Testcase.%d : expected written lenght is %d, but %d", index, len(testcase.input), written)
 			return
 		}
 
