@@ -9,10 +9,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/jjh2kiss/rawfish/config"
 	"github.com/jjh2kiss/rawfish/math"
 	"github.com/jjh2kiss/rawfish/rawfishnet"
+	"github.com/urfave/cli"
 )
 
 func main() {
