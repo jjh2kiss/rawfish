@@ -43,7 +43,7 @@ HTTP Message | Example
 ------------ | ------
 STATUS LINE  | HTTP/1.1 200 OK
 HEADERS(General, Reponse, Entity) | Connection: Close
-Message Body | <HTML>...<HTML>
+Message Body | &lt;HTML&gt;...&lt;/HTML&gt;
 
 RESTFul API, Header 값에 따른  클라이언트 동작 테스트 등에 유용하게 사용하 수 있습니다.  
 
